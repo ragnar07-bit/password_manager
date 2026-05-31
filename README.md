@@ -49,3 +49,31 @@ Per avviare l'applicazione è necessario il .NET SDK (8.0 o superiore). Il proge
 
 ## 🔒 Sicurezza
 La Master Password inserita all'avvio non viene mai salvata su disco. Viene utilizzata esclusivamente in memoria per derivare la chiave crittografica AES. Se il file vault.json viene rubato, i dati rimangono completamente illeggibili senza la Master Password corretta.
+
+---
+
+## 📈 Roadmap & Migliorie Future
+Il progetto è in costante evoluzione. Di seguito sono elencate le funzionalità e le ottimizzazioni pianificate per i prossimi rilasci:
+
+1. Sicurezza Energetica
+- [ ] Salt Dinamico Univoco: Generazione di un Salt casuale a 32-bit memorizzato nel JSON per impedire attacchi basati su tabelle precomputate.
+
+- [ ] Auto-Clear Clipboard: Sviluppo di un timer asincrono (Task.Delay) per ripulire gli appunti di sistema dopo 30 secondi dalla copia della password.
+
+- [ ] Verifica Master Password (Sign-up): Implementazione di un flusso di configurazione iniziale per verificare l'integrità della password senza tentare la decifratura diretta.
+
+2. Esperienza Utente (UX)
+- [ ] Ricerca Predittiva: Integrazione dei filtri dinamici di Spectre.Console per digitare e cercare i servizi in tempo reale.
+
+- [ ] Categorie e Tag: Supporto per raggruppare le credenziali (es. Lavoro, Personale, Social).
+
+- [ ] Modifica Credenziali: Funzionalità per aggiornare account o password esistenti senza doverli ricreare.
+
+3. Qualità del Codice & Architettura
+- [ ] Dependency Injection: Configurazione dell'host generico di .NET per disaccoppiare i servizi e facilitare l'Inversione del Controllo (IoC).
+
+- [ ] Gestione Path Multi-Piattaforma: Spostamento del database vault.json nelle cartelle di sistema standard (es. .config su Linux o AppData su Windows).
+
+- [ ] Unit Testing: Copertura del codice tramite test automatizzati (xUnit) per validare i moduli CryptoService e PasswordGenerator.
+
+4. Implementazione di un database relazionale o non relazionale per il savataggio dei dati
