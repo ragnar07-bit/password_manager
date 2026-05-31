@@ -36,7 +36,8 @@ public class MenuManager
                     .AddChoices(new[] { 
                         "📋 Mostra Tutte le Credenziali", 
                         "🔍 Cerca e Copia Password", 
-                        "➕ Aggiungi Nuova Password", 
+                        "➕ Aggiungi Nuova Password",
+                        "❌ Rimuovi Credenziale",
                         "❌ Esci" 
                     }));
 
@@ -78,7 +79,7 @@ public class MenuManager
 
         foreach (var cred in _currentVault.Credentials)
         {
-            table.AddRow(cred.ServiceName, cred.Username, cred.EncryptedPassword);
+            table.AddRow(cred.ServiceName, cred.Username, "[grey]********[/]");
         }
         
         AnsiConsole.Write(table);
@@ -104,12 +105,17 @@ public class MenuManager
         {
             string passwordDecifrata = _cryptoService.Encrypt(credenzialeScelta.EncryptedPassword, _masterPassword);
             ClipboardService.SetText(passwordDecifrata);
-            
+    
             AnsiConsole.MarkupLine($"[bold green]✔ Password per {credenzialeScelta.ServiceName} copiata negli appunti![/]");
         }
-        catch (Exception)
+        catch (System.Security.Cryptography.CryptographicException)
         {
-            AnsiConsole.MarkupLine("[bold red]❌ Errore durante la decifratura.[/]");
+            // Questo errore scatta se la chiave derivata dalla Master Password non riesce a decifrare il blocco AES
+            AnsiConsole.MarkupLine("[bold red]❌ Errore di decifratura! La Master Password inserita all'avvio non è corretta.[/]");
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[bold red]❌ Errore imprevisto:[/] {ex.Message}");
         }
     }
     
@@ -121,8 +127,14 @@ public class MenuManager
         
         // Integrazione con PasswordGenerator
         var generaCasuale = AnsiConsole.Confirm("Vuoi generare automaticamente una password casuale sicura?");
-        string passwordInChiaro;
-
+        string passwordInChiaro = null;
+    
+        if (string.IsNullOrEmpty(servizio) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(passwordInChiaro))
+        {
+            AnsiConsole.MarkupLine("[red]❌ Campi non validi. Operazione annullata.[/]");
+            return;
+        }
+        
         if (generaCasuale)
         {
             passwordInChiaro = _passwordGenerator.Generate(18);
@@ -131,12 +143,6 @@ public class MenuManager
         else
         {
             passwordInChiaro = AnsiConsole.Prompt(new TextPrompt<string>("[grey]>[/] Inserisci la Password:").Secret());
-        }
-
-        if (string.IsNullOrEmpty(servizio) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(passwordInChiaro))
-        {
-            AnsiConsole.MarkupLine("[red]❌ Campi non validi. Operazione annullata.[/]");
-            return;
         }
 
         string passwordCifrata = _cryptoService.Encrypt(passwordInChiaro, _masterPassword);
