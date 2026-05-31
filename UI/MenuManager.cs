@@ -68,7 +68,9 @@ public class MenuManager
     {
         if (!_currentVault.Credentials.Any())
         {
-            AnsiConsole.MarkupLine("[orange]⚠ La cassaforte è vuota.[/]");
+            // Rimosso qualsiasi riferimento a orange o colori personalizzati. 
+            // Qui c'era il bug alla riga 71.
+            AnsiConsole.MarkupLine("[yellow]La cassaforte e vuota.[/]");
             return;
         }
 
@@ -81,7 +83,7 @@ public class MenuManager
         {
             table.AddRow(cred.ServiceName, cred.Username, "[grey]********[/]");
         }
-        
+
         AnsiConsole.Write(table);
     }
     
