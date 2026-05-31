@@ -51,6 +51,9 @@ public class MenuManager
                 case "➕ Aggiungi Nuova Password":
                     AggiungiNuovaCredenziale();
                     break;
+                case "❌ Rimuovi Credenziale":
+                    RimuoviCredenziale();
+                    break;
                 case "❌ Esci":
                     running = false;
                     AnsiConsole.MarkupLine("[bold red]Cassaforte chiusa. Alla prossima![/]");
@@ -143,5 +146,38 @@ public class MenuManager
         _storageService.SaveVault(_currentVault);
 
         AnsiConsole.MarkupLine("[bold green]✔ Credenziale salvata con successo![/]");
+    }
+    
+    private void RimuoviCredenziale()
+    {
+        if (!_currentVault.Credentials.Any())
+        {
+            AnsiConsole.MarkupLine("[orange1]⚠ Nessuna credenziale presente da poter rimuovere.[/]");
+            return;
+        }
+
+        // 1. Permetti all'utente di selezionare quale credenziale eliminare
+        var opzioni = _currentVault.Credentials.Select(c => $"{c.ServiceName} ({c.Username})").ToList();
+        var selection = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("[red]Seleziona la credenziale da ELIMINARE DEFINITIVAMENTE:[/]")
+                .AddChoices(opzioni));
+
+        var indiceSelezionato = opzioni.IndexOf(selection);
+        var credenzialeDaRimuovere = _currentVault.Credentials[indiceSelezionato];
+
+        // 2. Chiedi conferma esplicita per sicurezza
+        var conferma = AnsiConsole.Confirm($" Sei sicuro di voler eliminare le credenziali per [bold red]{credenzialeDaRimuovere.ServiceName}[/]?");
+
+        if (conferma)
+        {
+            _currentVault.Credentials.RemoveAt(indiceSelezionato);
+            _storageService.SaveVault(_currentVault); // Salva subito le modifiche su file JSON
+            AnsiConsole.MarkupLine("[bold green]✔ Credenziale rimossa con successo e cassaforte aggiornata![/]");
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[yellow] Annullato. Nessuna modifica effettuata.[/]");
+        }
     }
 }
