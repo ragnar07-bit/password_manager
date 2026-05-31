@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Password_Manager.Models;
 using Password_Manager.Services;
+using PasswordManagerCLI.Services;
 using TextCopy;
 
 namespace Password_Manager.UI;
@@ -9,6 +10,7 @@ public class MenuManager
 {
     private readonly CryptoService _cryptoService = new();
     private readonly StorageService _storageService = new();
+    private readonly PasswordGenerator _passwordGenerator = new();
     private Vault _currentVault = new();
     private string _masterPassword = string.Empty;
     
@@ -111,16 +113,35 @@ public class MenuManager
     //Funzione per aggiungere nuove credenziali
     private void AggiungiNuovaCredenziale()
     {
-        var servizio = AnsiConsole.Ask<string>("[grey]>[/] Nome del Servizio: ").Trim();
-        var username = AnsiConsole.Ask<string>("[grey]>[/] Username o Email: ").Trim();
-        var passwordInChiaro = AnsiConsole.Prompt(new TextPrompt<string>("[grey]>[/] Inserisci la Password:").Secret());
+        var servizio = AnsiConsole.Ask<string>("[grey]>[/] Nome del Servizio:").Trim();
+        var username = AnsiConsole.Ask<string>("[grey]>[/] Username o Email:").Trim();
+        
+        // Integrazione con PasswordGenerator
+        var generaCasuale = AnsiConsole.Confirm("Vuoi generare automaticamente una password casuale sicura?");
+        string passwordInChiaro;
+
+        if (generaCasuale)
+        {
+            passwordInChiaro = _passwordGenerator.Generate(18);
+            AnsiConsole.MarkupLine("[grey]>[/] Password generata automaticamente (Nascosta).");
+        }
+        else
+        {
+            passwordInChiaro = AnsiConsole.Prompt(new TextPrompt<string>("[grey]>[/] Inserisci la Password:").Secret());
+        }
+
+        if (string.IsNullOrEmpty(servizio) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(passwordInChiaro))
+        {
+            AnsiConsole.MarkupLine("[red]❌ Campi non validi. Operazione annullata.[/]");
+            return;
+        }
 
         string passwordCifrata = _cryptoService.Encrypt(passwordInChiaro, _masterPassword);
 
-        var nuovaCredenziale = new Credential { ServiceName = servizio, Username = username, EncryptedPassword = passwordCifrata};
+        var nuovaCredenziale = new Credential { ServiceName = servizio, Username = username, EncryptedPassword = passwordCifrata };
         _currentVault.Credentials.Add(nuovaCredenziale);
         _storageService.SaveVault(_currentVault);
-        
+
         AnsiConsole.MarkupLine("[bold green]✔ Credenziale salvata con successo![/]");
     }
 }
