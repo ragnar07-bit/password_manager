@@ -1,3 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using Password_Manager.UI;
 
-Console.WriteLine("Hello, World!");
+var menu = new MenuManager();
+menu.Run();
